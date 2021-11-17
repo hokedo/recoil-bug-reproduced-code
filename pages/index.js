@@ -1,9 +1,11 @@
-import {atom, selector, useRecoilValue, useSetRecoilState} from "recoil";
-import {Head} from "next/document";
+import {Suspense} from 'react';
+import {atom, selector, useRecoilValueLoadable, useSetRecoilState} from "recoil";
+import Head from "next/head";
 import {Image} from 'next/image';
 import styles from '../styles/Home.module.css'
 
-const getLatestProjectVersion = async (projectId) => ({projectId: 'default id'});
+
+const getLatestProjectVersion = async (projectId) => ({projectId: projectId});
 
 export const currentProjectId = atom({
     key: 'currentProjectId',
@@ -40,8 +42,6 @@ export default function Home() {
     const setCurrentProjectId = useSetRecoilState(currentProjectId);
     setCurrentProjectId(123);
 
-    const latestVersion = useRecoilValue(latestProjectVersion);
-    console.log(latestVersion);
     return (
         <div>
             <Head>
@@ -50,11 +50,21 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico"/>
             </Head>
 
-            <main className={styles.main}>
-                <h1 className={styles.title}>
-                    {JSON.stringify(latestVersion)}
-                </h1>
-            </main>
+            <Suspense fallback={<div>Loading...</div>}>
+                <main className={styles.main}>
+                    <h1 className={styles.title}>
+                        <HomeHelper/>
+                        <button onClick={() => setCurrentProjectId(25)}>Click</button>
+                    </h1>
+                </main>
+            </Suspense>
         </div>
     )
+}
+
+function HomeHelper(){
+    const latestVersion = useRecoilValueLoadable(latestProjectVersion);
+
+    return <div>{JSON.stringify(latestVersion.getValue().projectId)}</div>
+
 }
